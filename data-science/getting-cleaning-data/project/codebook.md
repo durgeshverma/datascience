@@ -4,6 +4,9 @@
 
 ### Continuous variables
 Each variable below is the aggregation (by subject and activity) of raw data mean and standard deviation features.
+	- Prefix t denotes time domain signals
+	- Prefix f denotes frequency domain signals
+	- Unit of each variable is radians/seconds
 For more information on raw data variables, please see features_info.txt from raw data.
 
 
