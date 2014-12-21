@@ -3,7 +3,6 @@
 This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis.
 
 ### Expectation from project submission
-Project submission expects 4 files as described below
 1. README.md - this file
 2. codebook.md - code book describes the meta data definitions of output file
 3. run_analysis.R - script that implements requirements and generate output file
