@@ -1,6 +1,10 @@
 ### Introduction
 
-This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission has output of data analysis described as below.
+This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission requires below files as described 
+1. README.md
+2. codebook.md
+3. run_analysis.R
+4. tidy_UCI_HAR_Dataset.csv
 
 ### Requirement for project assignment
 1. create one R script called run_analysis.R that does the following
