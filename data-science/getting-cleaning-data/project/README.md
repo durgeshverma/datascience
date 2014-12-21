@@ -28,7 +28,6 @@ This project assignment demonstrates the learning ability to collect, analyze, a
 	- http://www.insideactivitytracking.com/data-science-activity-tracking-and-the-battle-for-the-worlds-top-sports-brand/
 
 ### Files required for data analysis 
-run_analysis.R script depends upon below files which are provided and are part of Raw data. Definition of each file is taken from README.txt of Raw data. All files are part of Raw data.
 1. 'features.txt': List of all features.
 2. 'activity_labels.txt': Links the class labels with their activity name.
 3. 'train/X_train.txt': Training set.
@@ -37,7 +36,9 @@ run_analysis.R script depends upon below files which are provided and are part o
 6. 'test/X_test.txt': Test set.
 7. 'test/y_test.txt': Test labels.
 8. 'test/subject_test.txt': Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
-			
+
+run_analysis.R script depends upon above files which are provided and are part of Raw data. Definition of each file is taken from README.txt of Raw data. All files are part of Raw data.
+
 ### About the R script run_analysis.R
 1. function run_analysis
 This function is the main starting point of data analysis. This function 
