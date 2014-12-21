@@ -1,10 +1,10 @@
 ### Introduction
 
-This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission has output of data analysis described as below:
-1. run\_analysis.R : script that implements requirements and generate output file
-2. tidy\_UCI\_HAR\_Dataset.csv : output file
+This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission has output of data analysis described as below
+1. run_analysis.R - script that implements requirements and generate output file
+2. tidy_UCI_HAR_Dataset.csv - output file
 	- tabular data (180 rows * 68 cols) in csv form
-		- 2 columns subject\_id and act\_label\_name represents columns on which output data is categorized
+		- 2 columns subject_id and act_label_name represents columns on which output data is categorized
 		- 66 columns (called features) out of 561 are taken from input data source representing mean and standard deviation only
 3. codebook.md : code book describes the meta data definitions of output file
 4. README.md : this file
