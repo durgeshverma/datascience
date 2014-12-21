@@ -7,7 +7,7 @@ Each variable below is the aggregation (by subject and activity) of raw data mea
 	
 - Prefix t denotes time domain signals
 - Prefix f denotes frequency domain signals
-- Unit of each variable is radians/seconds
+- Unit of each variable is radians/second
 
 For more information on raw data variables, please see features_info.txt from raw data.
 
