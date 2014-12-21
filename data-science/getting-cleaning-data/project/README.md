@@ -52,7 +52,7 @@ This function is the main starting point of data analysis. This function
 	- merge test and train data and join whole dataset with activities by activity id
 	- clean up column names of dataset (remove chars ['(', ')'], replace '-' with '_')
 	- aggregate dataset by subjects and activities
-	- saves output data to "./../tidy_UCI_HAR_Dataset.csv" file
+	- saves output data to "./../tidy_UCI_HAR_Dataset.txt" file
 2. function collectDataBySelectedFeatures
 This function 
 	- reads the X data file, y data file, subject data file
@@ -62,6 +62,13 @@ This function
 This function 
 	- reads the X data file, y data file, subject data file
 	- binds 3 files into one dataset
+
+### How to run script
+
+1. source the script run_analysis.R in RStudio
+2. execute command 'run_analysis()'
+	- output data is saved in "./../tidy_UCI_HAR_Dataset.txt" file
+	- same output will be printed on console by default
 
 ### Contributor
 	- Student Coursera class getdata-016
