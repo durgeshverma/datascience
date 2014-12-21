@@ -56,7 +56,8 @@ run_analysis <- function() {
         mean                                                                                ## function to apply on selected quantitative data
     )
     
-    write.csv(by_subjects_activities, file="./../tidy_UCI_HAR_Dataset.csv")
+    #write.csv(by_subjects_activities, file="./../tidy_UCI_HAR_Dataset.csv", row.names=FALSE)
+    write.table(by_subjects_activities, file="./../tidy_UCI_HAR_Dataset.txt", row.names=FALSE)
     
     by_subjects_activities
 }

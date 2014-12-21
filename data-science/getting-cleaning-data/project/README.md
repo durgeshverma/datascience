@@ -1,13 +1,15 @@
 ### Introduction
 
-This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission has output of data analysis described as below:
-1. run\_analysis.R : script that implements requirements and generate output file
-2. tidy\_UCI\_HAR\_Dataset.csv : output file
+This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. Project submission expects below files as decribed:
+
+
+1. README.md - this file
+2. codebook.md - code book describes the meta data definitions of output file
+3. run_analysis.R - script that implements requirements and generate output file
+4. tidy_UCI_HAR_Dataset.csv - output file
 	- tabular data (180 rows * 68 cols) in csv form
-		- 2 columns subject\_id and act\_label\_name represents columns on which output data is categorized
+		- 2 columns subject_id and act_label_name represents columns on which output data is categorized
 		- 66 columns (called features) out of 561 are taken from input data source representing mean and standard deviation only
-3. codebook.md : code book describes the meta data definitions of output file
-4. README.md : this file
 
 ### Requirement for project assignment
 1. create one R script called run_analysis.R that does the following
@@ -25,8 +27,10 @@ This project assignment demonstrates the learning ability to collect, analyze, a
 	- http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones 
 	- http://www.insideactivitytracking.com/data-science-activity-tracking-and-the-battle-for-the-worlds-top-sports-brand/
 
-### Files required for data analysis 
+### Files required for data analysis
 run_analysis.R script depends upon below files which are provided and are part of Raw data. Definition of each file is taken from README.txt of Raw data. All files are part of Raw data.
+
+
 1. 'features.txt': List of all features.
 2. 'activity_labels.txt': Links the class labels with their activity name.
 3. 'train/X_train.txt': Training set.
@@ -35,7 +39,7 @@ run_analysis.R script depends upon below files which are provided and are part o
 6. 'test/X_test.txt': Test set.
 7. 'test/y_test.txt': Test labels.
 8. 'test/subject_test.txt': Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
-			
+
 ### About the R script run_analysis.R
 1. function run_analysis
 This function is the main starting point of data analysis. This function 
@@ -48,7 +52,7 @@ This function is the main starting point of data analysis. This function
 	- merge test and train data and join whole dataset with activities by activity id
 	- clean up column names of dataset (remove chars ['(', ')'], replace '-' with '_')
 	- aggregate dataset by subjects and activities
-	- saves output data to "./../tidy_UCI_HAR_Dataset.csv" file
+	- saves output data to "./../tidy_UCI_HAR_Dataset.txt" file
 2. function collectDataBySelectedFeatures
 This function 
 	- reads the X data file, y data file, subject data file
@@ -58,6 +62,13 @@ This function
 This function 
 	- reads the X data file, y data file, subject data file
 	- binds 3 files into one dataset
+
+### How to run script
+
+1. source the script run_analysis.R in RStudio
+2. execute command 'run_analysis()'
+	- output data is saved in "./../tidy_UCI_HAR_Dataset.txt" file
+	- same output will be printed on console by default
 
 ### Contributor
 	- Student Coursera class getdata-016
