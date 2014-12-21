@@ -3,6 +3,10 @@
 2. act_label_name - activity name
 
 ### Continuous variables
+Each variable below is the aggregation (by subject and activity) of raw data mean and standard deviation features.
+For more information on raw data variables, please see features_info.txt from raw data.
+
+
 1. tBodyAcc_mean_X - aggregation of tBodyAcc_mean()_X
 2. tBodyAcc_mean_Y
 3. tBodyAcc_mean_Z
