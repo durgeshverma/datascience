@@ -1,8 +1,6 @@
 ### Introduction
 
-This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. 
-The goal is to prepare tidy data that can be used for later analysis. 
-The submission has output of data analysis described as below:
+This project assignment demonstrates the learning ability to collect, analyze, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. The submission has output of data analysis described as below:
 1. run_analysis.R : script that implements requirements and generate output file
 2. tidy_UCI_HAR_Dataset.csv : output file
 	- tabular data (180 rows * 68 cols) in csv form
@@ -28,8 +26,7 @@ The submission has output of data analysis described as below:
 	- http://www.insideactivitytracking.com/data-science-activity-tracking-and-the-battle-for-the-worlds-top-sports-brand/
 
 ### Files required for data analysis 
-(all files are part of "Input data source")
-run_analysis.R script depends upon below files which are provided and are part of "Raw data". Definition of each file is taken from README.txt of "Raw data".
+run_analysis.R script depends upon below files which are provided and are part of Raw data. Definition of each file is taken from README.txt of Raw data. All files are part of Raw data.
 1. 'features.txt': List of all features.
 2. 'activity_labels.txt': Links the class labels with their activity name.
 3. 'train/X_train.txt': Training set.
