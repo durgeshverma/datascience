@@ -74,5 +74,3 @@ For more information on raw data variables, please see features_info.txt from ra
 65. fBodyBodyGyroMag_std
 66. fBodyBodyGyroJerkMag_std
 
-Each variable above is the aggregation (by subject and activity) of raw data mean and standard deviation features.
-For more information on raw data variables, please see features_info.txt from raw data.
