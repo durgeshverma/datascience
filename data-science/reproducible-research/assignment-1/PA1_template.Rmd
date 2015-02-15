@@ -1,0 +1,124 @@
+---
+title: "Reproducible Research : Assignment #1"
+output: html_document
+---
+
+Set current working directory
+
+```{r}
+#cur_dir <- dirname(sys.frame(1)$ofile)
+#message('script is running from ',cur_dir)
+cur_dir <- "./"
+setwd(cur_dir)
+```
+
+Download data file if not exists in local drive
+
+```{r}
+filename <- 'activity.zip'
+if (!file.exists(filename)) {
+    message("downloading file...")
+    download.file('https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip', filename, method='curl')
+    unzip(filename, exdir="./")
+}
+```
+
+Load required libraries
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+Loading and preprocessing the data
+
+```{r}
+rawdata = read.table("./activity.csv", sep=",", na.strings="NA", header=TRUE)
+gooddata = subset(rawdata, select=c(steps, date, interval), !is.na(steps))
+```
+
+- What is mean total number of steps taken per day?
+--------------------------------------------------
+
+```{r}
+pd <- aggregate(gooddata$steps, list(gooddata$date), sum)
+colnames(pd) <- c("date", "steps")
+pd$type <- rep(c("sum (per 100)"), nrow(pd))
+pd$plotdata <- pd$steps/100
+
+pmn <- aggregate(gooddata$steps, list(gooddata$date), mean)
+colnames(pmn) <- c("date", "steps")
+pmn$type <- rep(c("mean"), nrow(pmn))
+pmn$plotdata <- pmn$steps
+
+pmd <- aggregate(gooddata$steps, list(gooddata$date), median)
+colnames(pmd) <- c("date", "steps")
+pmd$type <- rep(c("median"), nrow(pmd))
+pmd$plotdata <- pmd$steps
+
+q1 <- rbind(pd, pmn, pmd)
+
+rm(pd, pmn, pmd)
+
+qplot(date, plotdata, data=q1, fill=type) + labs(title="Activity Summary 1", y="steps") + geom_histogram(stat="identity") + coord_flip()
+```
+
+Note: Total number of steps is scaled down (divide by 100) to level of mean and median. Median is 0 for all date observations.
+
+- What is the average daily activity pattern?
+------------------------------------------------
+
+```{r}
+q2 <- aggregate(gooddata$steps, list(gooddata$interval), mean)
+colnames(q2) <- c("interval", "steps")
+qplot(data=q2, interval, steps) + geom_line() + labs(title="Time Series (5-minute Interval vs Average Steps)", y="average steps per interval") + geom_point(x=5, y=max(subset(gooddata, interval==5)["steps"]), color="red", size=1) + annotate("text", label = "max(5,18)", x=10, y=max(subset(gooddata, interval==5)["steps"])+5, size = 3, colour = "blue")
+```
+
+- Imputing missing values
+------------------------------------------------
+
+```{r}
+baddata = subset(rawdata, select=c(steps, date, interval), is.na(steps))
+baddata <- left_join(baddata, q2, by="interval")
+baddata <- subset(baddata, select=c("date","steps.y","interval"))
+colnames(baddata) <- c("date","steps","interval")
+imputedata <- rbind(gooddata, baddata)
+
+pd <- aggregate(imputedata$steps, list(imputedata$date), sum)
+colnames(pd) <- c("date", "steps")
+pd$type <- rep(c("sum (per 100)"), nrow(pd))
+pd$plotdata <- pd$steps/100
+
+pmn <- aggregate(imputedata$steps, list(imputedata$date), mean)
+colnames(pmn) <- c("date", "steps")
+pmn$type <- rep(c("mean"), nrow(pmn))
+pmn$plotdata <- pmn$steps
+
+pmd <- aggregate(imputedata$steps, list(imputedata$date), median)
+colnames(pmd) <- c("date", "steps")
+pmd$type <- rep(c("median"), nrow(pmd))
+pmd$plotdata <- pmd$steps
+
+q3 <- rbind(pd, pmn, pmd)
+
+rm(pd, pmn, pmd)
+
+qplot(date, plotdata, data=q3, fill=type) + labs(title="Activity Summary 2", y="steps") + geom_histogram(stat="identity") + coord_flip()
+```
+
+There are `r nrow(baddata)` missing values. Missing value denated as 'NA' in dataset. Missing values are filled by average steps per interval value.
+There is no impact on existing dataset except the missing values are showing up as per new strategy deviced.
+
+- Are there differences in activity patterns between weekdays and weekends?
+---------------------------------------------------------------------------
+
+```{r}
+imputedata <- mutate(imputedata, weekday=weekdays(as.Date(date), abbreviate=TRUE), weekend = ifelse(weekday=="Sat" | weekday=="Sun", TRUE, FALSE) )
+q4 <- aggregate(imputedata$steps, list(imputedata$weekend, imputedata$interval), mean)
+colnames(q4) <- c("weekend", "interval", "steps")
+qplot(data=q4, interval, steps, color=weekend) + labs(title="Time Series (5-minute Interval vs Average Steps)", y="average steps per interval") + geom_line()
+```
+
+Weekend activities are mostly higher when interval is greater than 1000, Week days activities are higher in most cases when interval is less than 1000.
+
+
