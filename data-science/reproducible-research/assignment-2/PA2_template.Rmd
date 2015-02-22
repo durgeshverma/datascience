@@ -6,10 +6,11 @@ date: Feb 21, 2015
 ---
 
 ## Synopsis
-This report analyze the storm and severe weather events happened in past (between Year 1950 and 2011) in United States. The data is sourced from U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. Report helps to answer two major questions
+This report analyze the storm and severe weather events happened in past (between Year 1950 and 2011) in United States. The data is sourced from U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. Report helps to answer two major questions across United States
 * One is to analyze the most catastrophic events caused most fatalities and injuries to human population, 
 * Another is to analyze the economic damage (property and corps) done by these events. 
-The outcome of the analysis shows only top harmful events instead of showing all the events.
+The outcome of the analysis shows only top harmful events instead of showing all the events. The report can be useful for municipal managers who might be responsible for planning and prioritizing resources for severe weather events to reduce the risk of fatalities, injuries and other financial losses. 
+Please note that report is not intended to suggest or recommend any solution to prepare for storm events.
 
 ## Initial Setup
 ### Set current working directory
@@ -19,7 +20,24 @@ cur_dir <- "./"
 setwd(cur_dir)
 ```
 
-* Download data file if not exists in local drive
+### Load required libraries
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+## Data Processing
+
+* Download the data file and unzip the CSV file
+* Read the CSV file into memory
+* Massage and clean up data. This selects and transforms data columns required by analysis. 
+* For part 1, data table columns FATALITIES and INJURIES are aggregated by event types (columnn name: EVTYPE), and then output data is arranged in new data table that consists of three columns: Event Type (EVTYPE), Count of fatalities / injuries (COUNT), type. Two different charts are drawn using this data table to summarize the results.
+* For part 2, subset is taken from main data table to get event type (column name: EVTYPE), property damage (column names: PROPDMG, PROPDMGEXP) and crop damage (CROPDMG, CROPDMGEXP). This data is consolidate further to help analyzing it better and creating three different charts as a result.
+
+### Download data file
 
 ```{r}
 filename <- 'StormData.csv.bz2'
@@ -29,104 +47,117 @@ if (!file.exists(filename)) {
 }
 ```
 
-### Load required libraries
-
-```{r}
-library(ggplot2)
-library(dplyr)
-```
-
-### Preparing data for analysis
-
-* Loading storm data
+### Load storm events data
 
 ```{r, cache=TRUE}
 rawdata = read.table(bzfile(filename), sep=",", na.strings=c("NA","?"), header=TRUE)
 head(rawdata, 3)
 ```
 
-## Part 1 - Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+Data file has tabular data that contains `r nrow(rawdata)` rows and `r ncol(rawdata)`. 
 
-### Processing storm data to identify most harmful events
+### Massage storm events data
+```{r}
+rawdata = select(mutate(subset(rawdata, select=c("BGN_DATE","EVTYPE","FATALITIES","INJURIES","PROPDMG","PROPDMGEXP","CROPDMG","CROPDMGEXP")), YEAR=as.numeric(format(as.Date(BGN_DATE, "%m/%d/%Y"), "%Y"))), -BGN_DATE)
+
+rawdata = mutate(rawdata, prop_damage_amount = ifelse( (PROPDMGEXP=="k" | PROPDMGEXP=="K"), PROPDMG*1000, ifelse( (PROPDMGEXP=="m" | PROPDMGEXP=="M"), PROPDMG*1000000, ifelse( (PROPDMGEXP=="b" | PROPDMGEXP=="B"), PROPDMG*1000000000, ifelse( (PROPDMGEXP=="h" | PROPDMGEXP=="H"), PROPDMG*100, PROPDMG) ) ) ) )
+
+rawdata = mutate(rawdata, crop_damage_amount = ifelse( (CROPDMGEXP=="k" | CROPDMGEXP=="K"), CROPDMG*1000, ifelse( (CROPDMGEXP=="m" | CROPDMGEXP=="M"), CROPDMG*1000000, ifelse( (CROPDMGEXP=="b" | CROPDMGEXP=="B"), CROPDMG*1000000000, ifelse( (CROPDMGEXP=="h" | CROPDMGEXP=="H"), CROPDMG*100, CROPDMG) ) ) ) )
+
+rawdata <- mutate(rawdata, total_damage_amount = prop_damage_amount + crop_damage_amount )
+
+rawdata = select(rawdata, -c(PROPDMGEXP,PROPDMG,CROPDMGEXP,CROPDMG))
+```
+
+Summary of data:
+```{r}
+kable(summary(rawdata), digits=2)
+```
+
+### Part 1 - Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+#### Process storm events data to identify most harmful events
 
 ```{r}
-q1 = aggregate(cbind(FATALITIES, INJURIES) ~ EVTYPE, data = rawdata, sum)
-q1_f = subset(q1, select=c("EVTYPE", "FATALITIES"))
+q1_f=aggregate(rawdata$FATALITIES, by=list(rawdata$EVTYPE), sum)
 colnames(q1_f) = c("EVTYPE", "COUNT")
 q1_f$type <- rep(c("FATALITIES"), nrow(q1_f))
 
-q1_i = subset(q1, select=c("EVTYPE", "INJURIES"))
+q1_i=aggregate(rawdata$INJURIES, by=list(rawdata$EVTYPE), sum)
 colnames(q1_i) = c("EVTYPE", "COUNT")
 q1_i$type <- rep(c("INJURIES"), nrow(q1_i))
 
-q1 = rbind(q1_f, q1_i)
-rm(q1_f, q1_i)
-
-q1_top50 = head(q1[order(q1$COUNT,q1$EVTYPE, na.last=TRUE, decreasing=TRUE),], 50)
-
+q1_top50 = rbind(head(q1_f[order(q1_f$COUNT, q1_f$EVTYPE, na.last=TRUE, decreasing=TRUE),], 25), head(q1_i[order(q1_i$COUNT, q1_i$EVTYPE, na.last=TRUE, decreasing=TRUE),], 25), deparse.level = 0)
+rownames(q1_top50) = NULL
 ```
 
-### Plotting charts to show most harmful events
+#### Plot charts to show most harmful events
 
 ```{r}
-p = qplot(EVTYPE, COUNT, data=q1_top50, facets=type~.) + geom_line(aes(group=type)) + labs(title="Top Harmful Storm Events for Population Health", x="Storm Event", y="Number of persons effected") + theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
-print(p)
-
 p = qplot(EVTYPE, COUNT, data=q1_top50, color=type) + geom_line(aes(group=type)) + labs(title="Top Harmful Storm Events for Population Health", x="Storm Event", y="Number of persons effected") + theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
 print(p)
 ```
 
-### `Results`
-TBD
-
-Clean up data
+#### `Results` - Part 1
+* Top 5 storm events causing most fatalities
 ```{r}
-rm(q1, q1_top50, p)
+res = head(subset(q1_top50, select=c("EVTYPE","COUNT"), type=="FATALITIES"), 5)
+colnames(res) = c("Event","Number of Fatalities")
+print(res)
+```
+* Top 5 storm events causing most injuries
+```{r}
+res = head(subset(q1_top50, select=c("EVTYPE","COUNT"), type=="INJURIES"), 5)
+colnames(res) = c("Event","Number of Injuries")
+print(res)
 ```
 
-## Part 2 - Across the United States, which types of events have the greatest economic consequences?
-
-### Processing storm data to identify events caused greatest economic consequences
-
+Clean up memory
 ```{r}
-q2 = subset(rawdata, select=c("EVTYPE","PROPDMG","PROPDMGEXP","CROPDMG","CROPDMGEXP"))
-q3 <- mutate(q2, prop_damage_amount = ifelse( (PROPDMGEXP=="k" | PROPDMGEXP=="K"), PROPDMG*1000, ifelse( (PROPDMGEXP=="m" | PROPDMGEXP=="M"), PROPDMG*1000000, ifelse( (PROPDMGEXP=="b" | PROPDMGEXP=="B"), PROPDMG*1000000000, PROPDMG) ) ) )
-rm(q2)
-q3 <- mutate(q3, crop_damage_amount = ifelse( (CROPDMGEXP=="k" | CROPDMGEXP=="K"), CROPDMG*1000, ifelse( (CROPDMGEXP=="m" | CROPDMGEXP=="M"), CROPDMG*1000000, ifelse( (CROPDMGEXP=="b" | CROPDMGEXP=="B"), CROPDMG*1000000000, CROPDMG) ) ) )
-q3 <- mutate(q3, total_damage_amount = prop_damage_amount + crop_damage_amount )
-
-q4 = aggregate(cbind(total_damage_amount, prop_damage_amount, crop_damage_amount) ~ EVTYPE, data = q3, sum)
-rm(q3)
-q4 = subset(q4, total_damage_amount>0)
-q4 = q4[order(q4$total_damage_amount, q4$EVTYPE, na.last=TRUE, decreasing=TRUE),]
-
-q5 = head(q4,25)
-q51 = subset(q5, select=c("EVTYPE", "prop_damage_amount"))
-colnames(q51) = c("EVTYPE", "DAMAGE_AMOUNT")
-q51$type <- rep(c("Property"), nrow(q51))
-
-q52 = subset(q5, select=c("EVTYPE", "crop_damage_amount"))
-colnames(q52) = c("EVTYPE", "DAMAGE_AMOUNT")
-q52$type <- rep(c("Crop"), nrow(q52))
-
-q5 = rbind(q51, q52)
-rm(q51, q52)
+rm(q1_f, q1_i, q1_top50, p)
 ```
 
-### Plotting charts to show events caused greatest economic consequences
+### Part 2 - Across the United States, which types of events have the greatest economic consequences?
+
+#### Processing storm data to identify events caused greatest economic consequences
 
 ```{r}
-p=qplot(EVTYPE, total_damage_amount/1000000, data=head(q4,50))+geom_bar(stat="identity")+labs(title="Top Storm Events caused greatest economic consequences", x="Storm Event", y="Damage Amount (in MM USD)")+theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
-print(p)
+q2 = subset(aggregate(cbind(total_damage_amount, prop_damage_amount, crop_damage_amount) ~ EVTYPE, data = rawdata, sum), total_damage_amount>0)
+q2 = q2[order(q2$total_damage_amount, q2$EVTYPE, na.last=TRUE, decreasing=TRUE),]
+rownames(q2) = NULL
 
-p=qplot(EVTYPE, DAMAGE_AMOUNT/1000000, data=q5, facets=type~.)+geom_line(aes(group=type))+labs(title="Top Storm Events caused greatest economic consequences", x="Storm Event", y="Damage Amount (in MM USD)")+theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
-print(p)
+q3 = head(q2,25)
+q31 = subset(q3, select=c("EVTYPE", "prop_damage_amount"))
+colnames(q31) = c("EVTYPE", "DAMAGE_AMOUNT")
+q31$type <- rep(c("Property"), nrow(q31))
 
-p=qplot(EVTYPE, DAMAGE_AMOUNT/1000000, data=q5, color=type)+geom_line(aes(group=type))+labs(title="Top Storm Events caused greatest economic consequences", x="Storm Event", y="Damage Amount (in MM USD)")+theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
-print(p)
+q32 = subset(q3, select=c("EVTYPE", "crop_damage_amount"))
+colnames(q32) = c("EVTYPE", "DAMAGE_AMOUNT")
+q32$type <- rep(c("Crop"), nrow(q32))
 
-rm(q4, q5, p)
+q3 = rbind(q31, q32)
+rm(q31, q32)
 ```
 
-### `Results`
-TBD
+#### Plotting charts to show events caused greatest economic consequences
+
+```{r}
+p=qplot(EVTYPE, total_damage_amount/1000000, data=head(q2,50))+geom_bar(stat="identity")+labs(title="Top Storm Events caused greatest economic consequences", x="Storm Event", y="Damage Amount (in MM USD)")+theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
+print(p)
+
+p=qplot(EVTYPE, DAMAGE_AMOUNT/1000000, data=q3, color=type)+geom_line(aes(group=type))+labs(title="Top Storm Events caused greatest economic consequences", x="Storm Event", y="Damage Amount (in MM USD)")+theme(axis.text.x=element_text(angle=90, hjust=0, vjust=0))
+print(p)
+```
+
+#### `Results` - Part 2
+* Top 5 storm events causing most financial damage
+```{r}
+res = head(q2, 5)
+colnames(res) = c("Event","Total Damage Amount (in USD)","Property Damage Amount (in USD)","Corps Damage Amount (in USD)")
+print(res)
+```
+
+Clean up memory
+```{r}
+rm(q2, q3, p, res)
+```
