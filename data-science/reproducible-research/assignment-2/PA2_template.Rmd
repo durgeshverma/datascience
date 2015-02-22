@@ -1,8 +1,8 @@
 ---
 title: "United States Storm and Severe Weather Historic Event Analysis"
-output: html_document
-author: Durgesh Verma
-date: Feb 21, 2015
+author: "Durgesh Verma"
+date: "Feb 21, 2015"
+output: pdf_document
 ---
 
 ## Synopsis
