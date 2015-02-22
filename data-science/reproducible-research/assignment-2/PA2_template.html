@@ -71,16 +71,11 @@ setwd(cur_dir)</code></pre>
 </div>
 <div id="load-required-libraries" class="section level3">
 <h3>Load required libraries</h3>
-<pre class="r"><code>library(data.table)
-library(ggplot2)</code></pre>
+<pre class="r"><code>library(ggplot2)</code></pre>
 <pre><code>## Warning: package 'ggplot2' was built under R version 3.1.2</code></pre>
 <pre class="r"><code>library(dplyr)</code></pre>
 <pre><code>## 
 ## Attaching package: 'dplyr'
-## 
-## The following objects are masked from 'package:data.table':
-## 
-##     between, last
 ## 
 ## The following object is masked from 'package:stats':
 ## 
@@ -99,7 +94,9 @@ library(ggplot2)</code></pre>
 <li>Download the data file and unzip the CSV file</li>
 <li>Read the CSV file into memory</li>
 <li>Massage and clean up data. This selects and transforms data columns required by analysis.</li>
-<li>For part 1, data table columns FATALITIES and INJURIES are aggregated by event types (columnn name: EVTYPE), and then output data is arranged in new data table that consists of three columns: Event Type (EVTYPE), Count of fatalities / injuries (COUNT), type. Two different charts are drawn using this data table to summarize the results.</li>
+<li>Appropriate charts are drawn to show the outcome of data analysis.</li>
+<li>Result section is included under each part of analysis.</li>
+<li>For part 1, data table columns FATALITIES and INJURIES are aggregated by event types (columnn name: EVTYPE), and then output data is arranged in new data table that consists of three columns: Event Type (EVTYPE), Count of fatalities / injuries (COUNT), type.</li>
 <li>For part 2, subset is taken from main data table to get event type (column name: EVTYPE), property damage (column names: PROPDMG, PROPDMGEXP) and crop damage (CROPDMG, CROPDMGEXP). This data is consolidate further to help analyzing it better and creating three different charts as a result.</li>
 </ul>
 <div id="download-data-file" class="section level3">

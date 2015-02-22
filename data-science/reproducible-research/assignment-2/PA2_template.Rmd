@@ -23,7 +23,6 @@ setwd(cur_dir)
 ### Load required libraries
 
 ```{r}
-library(data.table)
 library(ggplot2)
 library(dplyr)
 library(knitr)
@@ -33,8 +32,10 @@ library(knitr)
 
 * Download the data file and unzip the CSV file
 * Read the CSV file into memory
-* Massage and clean up data. This selects and transforms data columns required by analysis. 
-* For part 1, data table columns FATALITIES and INJURIES are aggregated by event types (columnn name: EVTYPE), and then output data is arranged in new data table that consists of three columns: Event Type (EVTYPE), Count of fatalities / injuries (COUNT), type. Two different charts are drawn using this data table to summarize the results.
+* Massage and clean up data. This selects and transforms data columns required by analysis.
+* Appropriate charts are drawn to show the outcome of data analysis.
+* Result section is included under each part of analysis.
+* For part 1, data table columns FATALITIES and INJURIES are aggregated by event types (columnn name: EVTYPE), and then output data is arranged in new data table that consists of three columns: Event Type (EVTYPE), Count of fatalities / injuries (COUNT), type.
 * For part 2, subset is taken from main data table to get event type (column name: EVTYPE), property damage (column names: PROPDMG, PROPDMGEXP) and crop damage (CROPDMG, CROPDMGEXP). This data is consolidate further to help analyzing it better and creating three different charts as a result.
 
 ### Download data file
