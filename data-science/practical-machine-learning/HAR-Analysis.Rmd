@@ -1,0 +1,155 @@
+---
+title: "Human Activity Recognition Data Analysis"
+author: "Durgesh Verma"
+date: "Dec 19, 2015"
+output: html_document
+---
+
+## Synopsis
+The report study the personal excercise activity data captured by devices like Fitbit, Nike Fuelband. The devices quantify self movement performed by group of people on themselves regularly. The report aims to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants done in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har. The report will perform multi step process to come up with a statistical model that can predict the manner in which participants did the exercise. The report provides the details on how the model was built, how cross validations were performed, the expected out of sample error, and the reason of selecting the final model. At the end, report will use the prediction model to predict 20 different test cases to validate the accuracy of the model. 
+
+## Initial Setup
+### Set current working directory
+
+```{r}
+cur_dir <- "./"
+setwd(cur_dir)
+```
+
+### Load required libraries
+
+```{r}
+library(dplyr)
+library(caret)
+library(knitr)
+```
+
+## Data Processing
+* Download the data file and unzip the CSV file
+* Read the CSV file into memory
+* Clean up data - Removed all secondary columns calculated on raw data columns. Identified NA columns in training and test set, removed union of both sets from training and test set.
+* Define predictors - As required by assignment, filtered the columns having arm,forearm,dumbell and belt related data.
+* Fit and validate multiple models - Step 1 is preprocessing the clean data. This is done using PCA and center/scale method. GLM cannot be used as it only works upto two levels (classe), rpart was experimented but the accuracy was lower than top two, hence not shown in report. Step 2 is fitting model on training data set using random forest.
+* Model selection - Compare the accuracy of models and selecting the one that has better accuracy. Verify the model on test data set to check which model better predict the test results. Cross-validation and out of sample error is discussed in the Result section.
+
+### Download data file and load raw data
+```{r, cache=TRUE}
+removeColsStartWith = function(cols, df) {
+    for(col in cols) {
+        df = df[,-grep(paste("^",col,sep=""), names(df))]
+    }
+    df
+}
+keepColsContains = function(cols, df) {
+    col_indexes = -1
+    for(col in cols) {
+        col_indexes = c(col_indexes,grep(col, names(df)))
+    }
+    df[,col_indexes[! col_indexes %in% c(-1)]]
+}
+
+filename = 'pml-training.csv'
+if (!file.exists(filename)) {
+    message("downloading file...")
+    download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', filename, method='curl')
+}
+rawdata = read.table(filename, sep=",", na.strings=c("NA","?"), header=TRUE)
+
+filename = 'pml-testing.csv'
+if (!file.exists(filename)) {
+    message("downloading file...")
+    download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', filename, method='curl')
+}
+rawdata2 = read.table(filename, sep=",", na.strings=c("NA","?"), header=TRUE)
+```
+
+Training Data file has tabular data that contains `r nrow(rawdata)` rows and `r ncol(rawdata)`. 
+
+### Clean data and define predictors
+```{r}
+set.seed(12345)
+seeds <- vector(mode = "list", length = 51)
+for(i in 1:50) seeds[[i]] <- sample.int(1000, 22)
+## For the last model:
+seeds[[51]] <- sample.int(1000, 1)
+
+stats_cols = c("min_","max_","avg_","total_","var_","stddev_","skewness_","kurtosis_")
+cols_to_keep_in_training = c("classe","belt","arm","dumbell")
+cols_to_keep_in_testing = c("problem_id","belt","arm","dumbell")
+
+##remove stats cols
+rawdata = removeColsStartWith(stats_cols,rawdata)
+rawdata2 = removeColsStartWith(stats_cols,rawdata2)
+
+##keeps the possible predictors in the set
+rawdata = keepColsContains(cols_to_keep_in_training,rawdata)
+rawdata2 = keepColsContains(cols_to_keep_in_testing,rawdata2)
+
+##remove NA - from training set perspective
+newdata=rawdata[,colSums(is.na(rawdata)) == 0]
+rm(rawdata)
+
+newdata2 = rawdata2[,intersect(colnames(rawdata2),colnames(newdata))]
+newdata2$problem_id = rawdata2$problem_id
+rm(rawdata2)
+
+##remove NA - from test set perspective
+newdata2=newdata2[,colSums(is.na(newdata2)) == 0]
+newdata = newdata[,c("classe",intersect(colnames(newdata),colnames(newdata2)))]
+
+```
+
+### Model 1 : Using Random Forest and pre process with method=PCA
+```{r}
+tc = trainControl("repeatedcv",number=10,repeats=5,p=0.75,verboseIter=FALSE,classProbs=TRUE,savePred=T,seeds=seeds)
+
+preProc.pca = preProcess(newdata,method="pca")
+train.pca = predict(preProc.pca, newdata)
+test.pca = predict(preProc.pca, newdata2)
+
+train.pca = select(train.pca,classe,starts_with("PC"))
+test.pca = select(test.pca,problem_id,starts_with("PC"))
+
+rf.pca = train(classe~.,data=train.pca,method="rf",trControl=tc)
+rf.pca
+rf.pca$finalModel$confusion
+```
+
+### Model 2 : Using Random Forest and pre process with method=c("center","scale")
+```{r}
+preProc.cs = preProcess(newdata,method=c("center","scale"))
+train.cs = predict(preProc.cs, newdata)
+test.cs = predict(preProc.cs, newdata2)
+
+rf.cs = train(classe~.,data=train.cs,method="rf",trControl=tc)
+rf.cs
+rf.cs$finalModel$confusion
+```
+
+#### `Results - Part 1` - Which model is better?
+* Random forest with preprocess center/scale is better over PCA.
+* Similarity - Both models used 10 folds and 5 repeatations.
+* Comparison - PCA method used 19 predictors vs 36 in center/scale. Accuracy with PCA is 0.9721 vs 0.9951 with center/scale keeping mtry=2 which is final value used in both model.
+```{r}
+model_sel_grid = cbind(select(rf.pca$results, mtry,Accuracy),model_name=rep("rf.pca",3))
+model_sel_grid = rbind(model_sel_grid,cbind(select(rf.cs$results, mtry,Accuracy),model_name=rep("rf.cs",3)))
+#model accuracy comparison
+qplot(mtry,Accuracy,data=model_sel_grid,colour=model_name) + geom_line() + ggtitle("Model Accuracy Comparison")
+#prediction comparison
+predict_table = data.frame(model_rf_pca_vals=predict(rf.pca$finalModel,test.pca),model_rf_cs_vals=predict(rf.cs$finalModel,test.cs))
+predict_table = mutate(predict_table,match=ifelse(model_rf_pca_vals==model_rf_cs_vals,TRUE,FALSE))
+qplot(model_rf_pca_vals,model_rf_cs_vals,data=predict_table,colour=match) + ggtitle("Model Prediction Comparison")
+```
+#### `Results - Part 2` - Out of sample error
+* Looking at the finalModel parameter of each model fit, the Out of bag (OOB) estimate of error rate is 0.04% in model 2 (rf.cs) compared to 2.58% in model 1 (rf.pca).
+
+#### `Results - Part 3` - Estimate the error appropriately with cross-validation
+* Cross validation is done using train method. trainControl is configured to create 10 folds and each repeat 5 times.
+* For each fold, 75% was allocated to training set, and 25% was allocated to validation set.
+* After all iterations, finalModel is the outcome of each model fit.
+* Model 2 (rf.cs) is 100% accurate as checked from project submission. Model 1 (rf.pca) error rate is `r 1-sum(predict_table$match)/nrow(predict_table)`
+
+#### Clean up memory
+```{r}
+rm(list=ls())
+```
