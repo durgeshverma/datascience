@@ -63,10 +63,10 @@ if (!file.exists(filename)) {
 rawdata2 = read.table(filename, sep=",", na.strings=c("NA","?"), header=TRUE)
 ```
 
-Training Data file has tabular data that contains `r nrow(rawdata)` rows and `r ncol(rawdata)`. 
+Training Data file has tabular data that contains `r nrow(rawdata)` rows and `r ncol(rawdata)` cols. 
 
 ### Clean data and define predictors
-```{r}
+```{r, cache=TRUE}
 set.seed(12345)
 seeds <- vector(mode = "list", length = 51)
 for(i in 1:50) seeds[[i]] <- sample.int(1000, 22)
@@ -96,11 +96,12 @@ rm(rawdata2)
 ##remove NA - from test set perspective
 newdata2=newdata2[,colSums(is.na(newdata2)) == 0]
 newdata = newdata[,c("classe",intersect(colnames(newdata),colnames(newdata2)))]
-
 ```
 
+Training data after clean up step `r nrow(newdata)` rows and `r ncol(newdata)` cols.
+
 ### Model 1 : Using Random Forest and pre process with method=PCA
-```{r}
+```{r, echo=TRUE}
 tc = trainControl("repeatedcv",number=10,repeats=5,p=0.75,verboseIter=FALSE,classProbs=TRUE,savePred=T,seeds=seeds)
 
 preProc.pca = preProcess(newdata,method="pca")
@@ -112,18 +113,28 @@ test.pca = select(test.pca,problem_id,starts_with("PC"))
 
 rf.pca = train(classe~.,data=train.pca,method="rf",trControl=tc)
 rf.pca
-rf.pca$finalModel$confusion
+rf.pca$finalModel
 ```
 
 ### Model 2 : Using Random Forest and pre process with method=c("center","scale")
-```{r}
+```{r, echo=TRUE}
 preProc.cs = preProcess(newdata,method=c("center","scale"))
 train.cs = predict(preProc.cs, newdata)
 test.cs = predict(preProc.cs, newdata2)
 
 rf.cs = train(classe~.,data=train.cs,method="rf",trControl=tc)
 rf.cs
-rf.cs$finalModel$confusion
+rf.cs$finalModel
+```
+
+#### `Test Data Prediction` - Model 1 (rf.pca)
+```{r}
+predict(rf.pca$finalModel,test.pca)
+```
+
+#### `Test Data Prediction` - Model 2 (rf.cs)
+```{r}
+predict(rf.cs$finalModel,test.cs)
 ```
 
 #### `Results - Part 1` - Which model is better?
@@ -140,6 +151,7 @@ predict_table = data.frame(model_rf_pca_vals=predict(rf.pca$finalModel,test.pca)
 predict_table = mutate(predict_table,match=ifelse(model_rf_pca_vals==model_rf_cs_vals,TRUE,FALSE))
 qplot(model_rf_pca_vals,model_rf_cs_vals,data=predict_table,colour=match) + ggtitle("Model Prediction Comparison")
 ```
+
 #### `Results - Part 2` - Out of sample error
 * Looking at the finalModel parameter of each model fit, the Out of bag (OOB) estimate of error rate is 0.04% in model 2 (rf.cs) compared to 2.58% in model 1 (rf.pca).
 
@@ -151,5 +163,5 @@ qplot(model_rf_pca_vals,model_rf_cs_vals,data=predict_table,colour=match) + ggti
 
 #### Clean up memory
 ```{r}
-rm(list=ls())
+#rm(list=ls())
 ```
