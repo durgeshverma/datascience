@@ -147,9 +147,13 @@ model_sel_grid = rbind(model_sel_grid,cbind(select(rf.cs$results, mtry,Accuracy)
 #model accuracy comparison
 qplot(mtry,Accuracy,data=model_sel_grid,colour=model_name) + geom_line() + ggtitle("Model Accuracy Comparison")
 #prediction comparison
-predict_table = data.frame(model_rf_pca_vals=predict(rf.pca$finalModel,test.pca),model_rf_cs_vals=predict(rf.cs$finalModel,test.cs))
-predict_table = mutate(predict_table,match=ifelse(model_rf_pca_vals==model_rf_cs_vals,TRUE,FALSE))
-qplot(model_rf_pca_vals,model_rf_cs_vals,data=predict_table,colour=match) + ggtitle("Model Prediction Comparison")
+pt.pca = select(test.pca,problem_id)
+pt.pca = cbind(pt.pca,data.frame(prediction=predict(rf.pca$finalModel,test.pca),model_name=rep("rf.pca",nrow(pt.pca))))
+pt.cs = select(test.cs,problem_id)
+pt.cs = cbind(pt.cs,data.frame(prediction=predict(rf.cs$finalModel,test.cs),model_name=rep("rf.cs",nrow(pt.cs))))
+predict_table = rbind(pt.pca,pt.cs)
+rm(pt.pca,pt.cs)
+qplot(problem_id,prediction,data=predict_table,colour=model_name) + ggtitle("Model Prediction Comparison")
 ```
 
 #### `Results - Part 2` - Out of sample error
